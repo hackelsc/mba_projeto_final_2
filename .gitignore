@@ -1,0 +1,32 @@
+# Ambiente Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Dados (nao versionar dados gerados/baixados)
+data_lake/raw/*
+data_lake/bronze/*
+data_lake/silver/*
+data_lake/gold/*
+data_lake/duckdb/*
+!data_lake/raw/.gitkeep
+!data_lake/bronze/.gitkeep
+!data_lake/silver/.gitkeep
+!data_lake/gold/.gitkeep
+!data_lake/duckdb/.gitkeep
+
+# Fonte original (CSV pode ser grande, cada um baixa localmente)
+source_data/*.csv
+
+# Configuracao local
+.env
+
+# SO / IDE
+.DS_Store
+.idea/
+
+# Pasta temporaria criada pelo Dagster ao rodar "dagster dev" sem
+# DAGSTER_HOME configurado (nome muda a cada execucao)
+.tmp_dagster_home_*/

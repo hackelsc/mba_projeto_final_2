@@ -1,0 +1,123 @@
+INSTRUÇÕES DE SETUP DO PROJETO
+================================
+
+1) Criar ambiente venv digitando o prompt abaixo no terminal
+
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+
+2) Antes de começar, confira se já existe (senão, rode nessa ordem):
+
+python scripts/raw.py
+python scripts/bronze.py
+
+Isso gera data_lake/raw/preco_primeiro_semestre_2026.csv e
+data_lake/bronze/preco_primeiro_semestre_2026.parquet, que a Silver e a Gold
+vão precisar como ponto de partida.
+
+Antes de escrever qualquer código, leia o notebook
+exploratoria/analise_exploratoria.ipynb (principalmente a seção "Conclusões"
+no final) — ele já lista os problemas reais encontrados no dado e o que
+precisa ser tratado.
+
+Se ficar perdido em qual arquivo faz o que, veja
+Arquitetura/mapa_do_projeto.txt. Se precisar justificar pro professor por
+que usamos Dagster e DuckDB, veja Arquitetura/justificativa.txt.
+
+
+================================
+PESSOA 2 — SILVER
+================================
+
+Objetivo: ler o Parquet da Bronze, limpar e tipar os dados, salvar o
+resultado em data_lake/silver/.
+
+1) Criar scripts/silver.py com uma função gerar_silver() que:
+   - Le data_lake/bronze/preco_primeiro_semestre_2026.parquet
+   - Converte "Data da Coleta" (texto) em data
+   - Converte "Valor de Venda" (texto com virgula) em numero (trocar , por .)
+   - Remove as linhas duplicadas (drop_duplicates) -- ja confirmado que sao
+     6 duplicatas reais de erro de coleta, seguro remover
+   - Descarta a coluna "Valor de Compra" (100% vazia, sem informacao)
+   - Aplica .str.strip() nas colunas de texto, especialmente CNPJ da Revenda
+     (tem espaco extra em 100% das linhas)
+   - Salva o resultado como Parquet em data_lake/silver/
+
+   Seguir o mesmo padrao de scripts/bronze.py (mesma estrutura de codigo).
+
+2) Depois que scripts/silver.py estiver funcionando sozinho (testar com
+   "python scripts/silver.py"), ativar o asset do Dagster:
+   descomentar/completar dagster_project/assets/silver.py, importando a
+   funcao gerar_silver de scripts/silver.py.
+
+3) Testar via Dagster: rodar "dagster dev -f dagster_project/definitions.py"
+   e materializar o asset silver_combustiveis, conferindo se ele aparece
+   conectado depois de bronze_combustiveis no grafo.
+
+
+================================
+PESSOA 3 — GOLD + DASHBOARD
+================================
+
+Objetivo: ler o Parquet da Silver, preparar as colunas relevantes, salvar em
+data_lake/gold/, carregar num banco DuckDB e montar o dashboard em Streamlit.
+
+Divisao de responsabilidade importante: a Gold NAO agrega os dados. Ela so
+limpa/seleciona colunas. Quem agrega (media, minimo, maximo etc.) e o DuckDB,
+via SQL, na hora que o dashboard consulta. Isso e proposital: assim o DuckDB
+tem uma funcao de verdade no projeto (nao e so uma copia do Parquet).
+
+1) scripts/gold.py ja existe, escrito e comentado -- so descomentar o
+   codigo e rodar "python scripts/gold.py" para testar. Se algum nome de
+   coluna da Silver ficar diferente do esperado (ex: a Pessoa 2 nomeou
+   diferente), ajustar a lista COLUNAS_GOLD dentro do arquivo.
+
+   O que o script faz: le data_lake/silver/*.parquet, seleciona so as
+   colunas relevantes pro dashboard (estado_sigla, regiao_sigla, municipio,
+   produto, bandeira, data_coleta, valor_venda), cria a coluna "ano_mes" a
+   partir da data, e salva em data_lake/gold/. Nao agrega nada -- mantem uma
+   linha por coleta, so mais enxuta.
+
+2) Ativar o asset do Dagster: descomentar/completar
+   dagster_project/assets/gold.py, importando gerar_gold de scripts/gold.py.
+
+3) Testar via Dagster, materializando gold_combustiveis (deve aparecer
+   conectado depois de silver_combustiveis).
+
+4) Criar a camada DuckDB, que carrega a Gold num banco para o dashboard
+   consultar (e agregar) com SQL:
+   - scripts/camada_duckdb.py ja existe e esta pronto (funcao
+     gerar_duckdb()), nao precisa escrever nada aqui. Ele so copia o Parquet
+     da Gold pra dentro do banco, sem agregar -- a agregacao acontece depois,
+     nas queries do dashboard (passo 5).
+   - Ativar o asset: descomentar dagster_project/assets/duckdb.py.
+   - Testar via Dagster, materializando duckdb_combustiveis (deve aparecer
+     conectado depois de gold_combustiveis). Isso gera
+     data_lake/duckdb/combustiveis.duckdb.
+
+5) Montar o dashboard em app/streamlit_app.py:
+   - Ler os dados com DuckDB, agregando via SQL (e aqui que preco_medio,
+     preco_minimo, preco_maximo e desvio_padrao sao calculados):
+       import duckdb
+       con = duckdb.connect("data_lake/duckdb/combustiveis.duckdb")
+       df = con.sql("""
+           SELECT estado_sigla, ano_mes, produto, bandeira,
+                  AVG(valor_venda) AS preco_medio,
+                  MIN(valor_venda) AS preco_minimo,
+                  MAX(valor_venda) AS preco_maximo,
+                  STDDEV(valor_venda) AS desvio_padrao
+           FROM gold_combustiveis
+           GROUP BY estado_sigla, ano_mes, produto, bandeira
+       """).df()
+     (ajustar o GROUP BY conforme o grafico -- cada grafico pode precisar de
+     uma agregacao diferente, essa e a vantagem de agregar via SQL em vez de
+     na Gold: nao precisa gerar uma tabela nova pra cada pergunta)
+   - (Opcional) calcular variacao_percentual_mes_anterior: mais facil de
+     fazer em Pandas depois do .df(), comparando com o mes anterior do mesmo
+     grupo, do que em SQL puro
+   - Montar os graficos combinados com as 6 respostas definidas (ranking de
+     preco por estado, etanol vs gasolina, evolucao no tempo, diferenca por
+     bandeira, dispersao de precos, ranking final)
+   - Rodar com: streamlit run app/streamlit_app.py

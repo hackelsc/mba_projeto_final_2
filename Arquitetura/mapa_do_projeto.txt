@@ -1,0 +1,86 @@
+MAPA DO PROJETO — O QUE CADA ARQUIVO FAZ
+=========================================
+
+Antes de mexer em qualquer coisa, leia INSTRUCOES.txt na raiz.
+
+
+RAIZ
+----
+requirements.txt   -> lista de bibliotecas do projeto (instalar com pip)
+.gitignore          -> o que o Git deve ignorar (venv, dados gerados, etc.)
+INSTRUCOES.txt       -> passo a passo de setup e do que cada pessoa precisa fazer
+main.py              -> arquivo padrao criado pelo PyCharm, nao faz parte do
+                        projeto, pode ser ignorado
+
+
+Arquitetura/
+------------
+justificativa.txt    -> por que usamos Dagster e DuckDB (resposta pronta
+                        pra defender na apresentacao)
+mapa_do_projeto.txt   -> este arquivo
+
+
+source_data/
+------------
+preco_primeiro_semestre_2026.csv  -> CSV original baixado do site da ANP,
+                                     ponto de partida de tudo
+
+
+scripts/  (a logica de verdade de cada camada mora aqui)
+--------
+raw.py            -> copia o CSV de source_data/ para data_lake/raw/, sem
+                     nenhuma transformacao (feito)
+bronze.py          -> le o CSV da Raw, renomeia colunas pra snake_case,
+                     salva como Parquet em data_lake/bronze/ (feito)
+silver.py           -> (Pessoa 2) le o Parquet da Bronze, converte tipos
+                     (data, numero), remove duplicatas, tira espacos em
+                     branco, salva em data_lake/silver/
+gold.py             -> (Pessoa 3) ja escrito, so descomentar. Le o Parquet
+                     da Silver, seleciona colunas relevantes, cria a coluna
+                     ano_mes, salva em data_lake/gold/. NAO agrega nada.
+camada_duckdb.py     -> (Pessoa 3) ja pronto e ativo. Le o Parquet da Gold
+                     e carrega numa tabela dentro de data_lake/duckdb/
+                     combustiveis.duckdb, sem agregar nada.
+
+
+dagster_project/  (orquestracao — cada asset so "embrulha" a funcao
+                   equivalente em scripts/, na mesma ordem)
+----------------
+definitions.py       -> arquivo que o Dagster le pra saber quais assets existem
+assets/raw.py         -> asset raw_combustiveis (feito)
+assets/bronze.py       -> asset bronze_combustiveis (feito)
+assets/silver.py       -> asset silver_combustiveis (Pessoa 2 descomenta)
+assets/gold.py          -> asset gold_combustiveis (Pessoa 3 descomenta)
+assets/duckdb.py         -> asset duckdb_combustiveis (Pessoa 3 descomenta)
+
+
+data_lake/  (onde os dados gerados ficam — nao versionado no Git, cada um
+             gera localmente rodando os scripts)
+----------
+raw/        -> copia bruta do CSV
+bronze/      -> Parquet com colunas renomeadas, sem limpeza
+silver/       -> Parquet limpo e tipado (Pessoa 2 gera)
+gold/          -> Parquet enxuto, so colunas relevantes + ano_mes, sem
+               agregacao (Pessoa 3 gera)
+duckdb/         -> banco combustiveis.duckdb, copia da Gold pronta pra
+               consulta SQL (Pessoa 3 gera)
+
+
+exploratoria/
+-------------
+analise_exploratoria.ipynb  -> notebook com a analise exploratoria completa
+                              (Pessoa 1/eu), termina com as conclusoes que
+                              guiam o que a Silver precisa tratar
+
+
+app/
+----
+streamlit_app.py  -> (Pessoa 3) dashboard final. Conecta no
+                    data_lake/duckdb/combustiveis.duckdb, escreve as
+                    queries SQL de agregacao (uma por grafico) e monta os
+                    6 graficos definidos
+
+
+ORDEM DE EXECUCAO DO PIPELINE
+------------------------------
+raw -> bronze -> silver -> gold -> duckdb -> (dashboard consulta o duckdb)
