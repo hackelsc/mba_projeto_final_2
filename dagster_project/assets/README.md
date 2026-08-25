@@ -3,9 +3,8 @@
 Um arquivo por camada, cada um "embrulhando" a função correspondente de
 `scripts/` como um asset do Dagster. A dependência entre camadas é inferida
 pelo nome do parâmetro bater com o nome do asset anterior (ex:
-`bronze_combustiveis(raw_combustiveis: str)` depende de `raw_combustiveis`).
+`silver_combustiveis(bronze_combustiveis: str)` depende de `bronze_combustiveis`).
 
-- `raw.py` — asset `raw_combustiveis` (Pessoa 1).
 - `bronze.py` — asset `bronze_combustiveis` (Pessoa 1).
 - `silver.py` — asset `silver_combustiveis`, a implementar (Pessoa 2).
 - `gold.py` — asset `gold_combustiveis`, a ativar (Pessoa 3).
