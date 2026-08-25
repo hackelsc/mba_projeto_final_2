@@ -46,7 +46,6 @@ dagster_project/  (orquestracao — cada asset so "embrulha" a funcao
                    equivalente em scripts/, na mesma ordem)
 ----------------
 definitions.py       -> arquivo que o Dagster le pra saber quais assets existem
-assets/raw.py         -> asset raw_combustiveis (feito)
 assets/bronze.py       -> asset bronze_combustiveis (feito)
 assets/silver.py       -> asset silver_combustiveis (Pessoa 2 descomenta)
 assets/gold.py          -> asset gold_combustiveis (Pessoa 3 descomenta)
