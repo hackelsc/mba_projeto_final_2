@@ -80,4 +80,4 @@ streamlit_app.py  -> (Pessoa 3) dashboard final. Conecta no
 
 ORDEM DE EXECUCAO DO PIPELINE
 ------------------------------
-raw -> bronze -> silver -> gold -> duckdb -> (dashboard consulta o duckdb)
+csv -> bronze -> silver -> gold -> duckdb -> (dashboard consulta o duckdb)
