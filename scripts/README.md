@@ -4,8 +4,7 @@ Lógica real de transformação de cada camada do pipeline, em Python puro — s
 depender do Dagster. Cada camada em um arquivo separado, um por pessoa do
 grupo, pra evitar conflito de edição no Git:
 
-- `raw.py` — copia o CSV de `source_data/` para `data_lake/raw/` (Pessoa 1).
-- `bronze.py` — lê a Raw, renomeia colunas, salva Parquet em `data_lake/bronze/` (Pessoa 1).
+- `bronze.py` — lê o CSV de `source_data/`, renomeia colunas, salva Parquet em `data_lake/bronze/` (Pessoa 1).
 - `silver.py` — lê a Bronze, limpa e tipa, salva em `data_lake/silver/` (Pessoa 2).
 - `gold.py` — lê a Silver, seleciona colunas relevantes e cria `ano_mes`, salva em
   `data_lake/gold/` (Pessoa 3). Não agrega nada.

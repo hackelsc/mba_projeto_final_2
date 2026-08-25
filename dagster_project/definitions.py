@@ -16,8 +16,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from dagster import Definitions, load_assets_from_modules
 
-from assets import bronze, duckdb, gold, raw, silver
+from assets import bronze, duckdb, gold, silver
 
-all_assets = load_assets_from_modules([raw, bronze, silver, gold, duckdb])
+all_assets = load_assets_from_modules([bronze, silver, gold, duckdb])
 
 defs = Definitions(assets=all_assets)

@@ -6,16 +6,18 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Dados (nao versionar dados gerados/baixados)
-data_lake/raw/*
 data_lake/bronze/*
 data_lake/silver/*
 data_lake/gold/*
 data_lake/duckdb/*
-!data_lake/raw/.gitkeep
 !data_lake/bronze/.gitkeep
 !data_lake/silver/.gitkeep
 !data_lake/gold/.gitkeep
 !data_lake/duckdb/.gitkeep
+!data_lake/bronze/README.md
+!data_lake/silver/README.md
+!data_lake/gold/README.md
+!data_lake/duckdb/README.md
 
 # Fonte original (CSV pode ser grande, cada um baixa localmente)
 source_data/*.csv
