@@ -5,7 +5,6 @@ camada (arquitetura em medalhão). Não usa um serviço de object storage dedica
 (tipo MinIO/S3) — é uma versão simplificada, adequada ao escopo do desafio, onde
 cada camada é simplesmente uma pasta com arquivos.
 
-- `raw/` — cópia bruta do CSV original, sem transformação.
 - `bronze/` — dados técnicos em Parquet, colunas renomeadas, ainda sem limpeza.
 - `silver/` — dados limpos, tipados e consolidados.
 - `gold/` — dado limpo e enxuto (colunas relevantes + `ano_mes`), sem agregação.
