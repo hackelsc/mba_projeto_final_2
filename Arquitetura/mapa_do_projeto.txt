@@ -55,7 +55,6 @@ assets/duckdb.py         -> asset duckdb_combustiveis (Pessoa 3 descomenta)
 data_lake/  (onde os dados gerados ficam — nao versionado no Git, cada um
              gera localmente rodando os scripts)
 ----------
-raw/        -> copia bruta do CSV
 bronze/      -> Parquet com colunas renomeadas, sem limpeza
 silver/       -> Parquet limpo e tipado (Pessoa 2 gera)
 gold/          -> Parquet enxuto, so colunas relevantes + ano_mes, sem
