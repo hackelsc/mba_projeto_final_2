@@ -28,9 +28,8 @@ preco_primeiro_semestre_2026.csv  -> CSV original baixado do site da ANP,
 
 scripts/  (a logica de verdade de cada camada mora aqui)
 --------
-raw.py            -> copia o CSV de source_data/ para data_lake/raw/, sem
-                     nenhuma transformacao (feito)
-bronze.py          -> le o CSV da Raw, renomeia colunas pra snake_case,
+
+bronze.py          -> copia o CSV de source_data/, renomeia colunas pra snake_case e
                      salva como Parquet em data_lake/bronze/ (feito)
 silver.py           -> (Pessoa 2) le o Parquet da Bronze, converte tipos
                      (data, numero), remove duplicatas, tira espacos em
