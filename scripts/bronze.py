@@ -1,5 +1,5 @@
 """
-Camada Bronze: le o CSV da camada Raw (data_lake/raw.py), renomeia colunas para snake_case
+Camada Bronze: copia o CSV de source_data/, renomeia colunas para snake_case
 e salva como Parquet em data/bronze/. Ainda sem limpeza de valores
 (isso e trabalho da Silver) -- so uma "traducao tecnica" do CSV bruto.
 """
@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 
-RAW_DIR = Path("data_lake/raw")
+SOURCE_DIR = Path("source_data")
 BRONZE_DIR = Path("data_lake/bronze")
 
 # Nomes de coluna como vem no CSV oficial da ANP -> snake_case
@@ -33,12 +33,12 @@ COLUNAS_RENAME = {
 
 
 def gerar_bronze(nome_arquivo: str) -> Path:
-    """Le o CSV da Raw e salva como Parquet na Bronze, so renomeando colunas."""
-    caminho_raw = RAW_DIR / nome_arquivo
-    if not caminho_raw.exists():
-        raise FileNotFoundError(f"Arquivo Raw nao encontrado: {caminho_raw}. Rode scripts/raw.py primeiro.")
+    """Le o CSV da source_data e salva como Parquet na Bronze, so renomeando colunas."""
+    caminho_data = SOURCE_DIR / nome_arquivo
+    if not caminho_data.exists():
+        raise FileNotFoundError(f"Arquivo CSV nao encontrado: {caminho_data}. Baixe arquivo CSV primeiro.")
 
-    df = pd.read_csv(caminho_raw, sep=";", encoding="utf-8-sig", dtype="string")
+    df = pd.read_csv(caminho_data, sep=";", encoding="utf-8-sig", dtype="string")
     df = df.rename(columns=COLUNAS_RENAME)
 
     BRONZE_DIR.mkdir(parents=True, exist_ok=True)
