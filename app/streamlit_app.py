@@ -7,6 +7,7 @@ gold_combustiveis nao vem agregada.
 
 from pathlib import Path
 
+import altair as alt
 import duckdb
 import pandas as pd
 import streamlit as st
@@ -146,7 +147,16 @@ st.line_chart(df_evolucao, x="ano_mes", y="preco_medio")
 
 st.header("4. Diferenca de preco por bandeira")
 df_bandeira = diferenca_por_bandeira(con, produto_selecionado)
-st.bar_chart(df_bandeira, x="bandeira", y="preco_medio")
+grafico_bandeira = (
+    alt.Chart(df_bandeira)
+    .mark_bar()
+    .encode(
+        y=alt.Y("bandeira", sort=df_bandeira["bandeira"].tolist(), title="Bandeira"),
+        x=alt.X("preco_medio", title="Preco medio (R$)"),
+        tooltip=["bandeira", "preco_medio", "coletas"],
+    )
+)
+st.altair_chart(grafico_bandeira, use_container_width=True)
 
 st.header("5. Dispersao de precos por estado")
 df_dispersao = dispersao_por_estado(con, produto_selecionado)
